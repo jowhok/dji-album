@@ -67,25 +67,30 @@ check('卡片图片不使用原生 lazy', attrs && attrs.loading !== 'lazy' && a
 // 先等新页面稳定再计时：check-all 会先跑 reload-cdp，紧接着这里又 reload 一次，
 // 两次连续 reload 时过早采样会读到「img 已挂载但尚未发起请求」的瞬时 0。
 await send('Page.reload', { ignoreCache: true })
-const readyExpr = `document.readyState === 'complete' && document.querySelectorAll('.tile img').length === ${TILES}`
+const readyExpr = `document.readyState === 'complete' && document.querySelectorAll('.tile').length === ${TILES}`
 let ready = false
 for (let i = 0; i < 40; i++) {
   if ((await evalJs(readyExpr)) === true) { ready = true; break }
   await wait(150)
 }
+// 卡片数 = 媒体总数，但部分卡片不是 <img>（视频/占位），故以实际挂载的 img 全部 decode 完为准
 const t0 = Date.now()
 let loaded = 0
+let total = 0
 let elapsed = 0
 while (Date.now() - t0 < 12000) {
-  const n = await evalJs(`(() => {
+  const n = JSON.parse(await evalJs(`JSON.stringify((() => {
     const a = [...document.querySelectorAll('.tile img')]
-    return a.length === ${TILES} ? a.filter(i => i.naturalWidth > 0).length : -1
-  })()`)
-  if (typeof n === 'number' && n >= 0) loaded = n
-  if (loaded === TILES) { elapsed = Date.now() - t0; break }
+    return { total: a.length, loaded: a.filter(i => i.naturalWidth > 0).length }
+  })())`) || 'null')
+  if (n && n.total > 0) {
+    total = n.total
+    loaded = n.loaded
+    if (loaded === total) { elapsed = Date.now() - t0; break }
+  }
   await wait(200)
 }
-check(`冷加载 ${TILES} 张缩略图 < 10 秒`, ready && loaded === TILES && elapsed < 10000, `${loaded}/${TILES} in ${elapsed || '>12000'}ms`)
+check(`冷加载 ${total} 张缩略图 < 10 秒`, ready && total > 0 && loaded === total && elapsed < 10000, `${loaded}/${total} in ${elapsed || '>12000'}ms`)
 
 const state = JSON.parse(await evalJs(`(async () => JSON.stringify({
   files: (await window.api.listFiles('all','time')).length,

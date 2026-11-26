@@ -248,9 +248,9 @@ export default function SettingsView({ themeMode, onThemeChange, onRootChange }:
             <code>{info?.root ?? '读取中…'}</code>
           </div>
           <div className="settings-form">
-            <label>主机地址<input value={form.host} onChange={set('host')} placeholder="192.168.5.32" /></label>
-            <label>共享名称<input value={form.share} onChange={set('share')} placeholder="DJI-47388491" /></label>
-            <label>用户名<input value={form.username} onChange={set('username')} placeholder="DJI" /></label>
+            <label>主机地址<input value={form.host} onChange={set('host')} placeholder="例如 192.168.1.10" /></label>
+            <label>共享名称<input value={form.share} onChange={set('share')} placeholder="例如 Photos" /></label>
+            <label>用户名<input value={form.username} onChange={set('username')} placeholder="SMB 用户名" /></label>
             <label>照片根目录（相对共享）<input value={form.rootDir} onChange={set('rootDir')} /></label>
             <label className="settings-form-wide">
               密码（留空沿用已保存的 Windows 凭据）

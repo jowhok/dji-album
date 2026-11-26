@@ -52,7 +52,7 @@
 │             /ping  /thumb/<hash>.jpg  /media/<token>│
 └───────────────────────────────────────────────────┘
                       │ 直接读 UNC 路径
-              \\<NAS-IP>\<共享>\DJI Device\...\YYYYMMDD\
+              \\<NAS 主机>\<共享名>\<照片根>\YYYYMMDD\
 ```
 
 - **媒体服务**：`/thumb/` 返回带 `Content-Length` 的 JPEG（支持 HEAD）；`/media/<token>` 按 Range 返回 206/416，支持边下边播。token 为 `sha1(path)`，且路径必须已在 `files` 表登记，未登记返回 404，**防止借 URL 读取任意本地文件**。
@@ -69,7 +69,7 @@
 3. 系统具备 **HEVC 解码**能力（Chromium 依赖系统解码器）；应用启动会自行探测并在不支持时提示。
 4. 首次运行在引导页填写 NAS 主机 / 共享 / 用户名 / 照片根目录，密码可选（写入 Windows 凭据管理器）。
 
-> 代码里 `src/main/settings.ts` 的 `DEFAULTS` 含一份示例 NAS 地址与共享名（本项目实际使用值）。Fork / 复用时请按自己的环境修改；仓库为私有，仍请注意不要把凭据提交进来。
+> **配置与隐私**：本仓库为公开仓库，代码与文档里**不内置任何真实 NAS 地址 / 共享名 / 账号名 / 密码**。`src/main/settings.ts` 的默认值全为空，首次启动在引导页填写后保存到 `%APPDATA%/dji-album/settings.json`，密码只经 `cmdkey` 写入 Windows 凭据管理器。回归脚本默认只校验「值非空 / UNC 格式」；本机若想精确比对，可注入 `DJI_NAS_HOST` / `DJI_NAS_SHARE` / `DJI_NAS_USER` / `DJI_NAS_ROOT` 环境变量（仅本机生效，不写入仓库）。已有用户不受影响：已保存的 `settings.json` 优先级高于默认值。
 
 ---
 
@@ -128,7 +128,7 @@ DJI_ONLY=thumbs CDP_PORT=9222 npm run check:all   # 只跑名字含 thumbs 的�
 
 - 涉及**真实输入**的回归一律用 CDP `Input.dispatchMouseEvent` / `Input.dispatchKeyEvent`；合成 `dispatchEvent` 会绕过 React 18 离散事件的同步 effect，曾漏掉「真实右键打不开菜单」的 bug。
 - 后台启动的实例可能被 Chromium 判定为 hidden 并节流图片请求，脚本已用 `Page.bringToFront` 处理；出现缩略图 0 张时优先怀疑这个而非应用缺陷。
-- 基线通过 `DJI_TILES` / `DJI_FAV` 环境变量注入，`check-all` 自动设置，无需手工同步 NAS 文件数量。
+- 基线通过 `DJI_TILES` / `DJI_FAV` 环境变量注入，`check-all` 自动设置；NAS 精确比对可选 `DJI_NAS_*`（见「环境要求」），无需手工同步 NAS 文件数量。
 
 ---
 

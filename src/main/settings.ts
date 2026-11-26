@@ -6,12 +6,9 @@ import type { NasSettings } from '../shared/types'
 
 export type { NasSettings }
 
-const DEFAULTS: NasSettings = {
-  host: '192.168.5.32',
-  share: 'DJI-47388491',
-  username: 'DJI',
-  rootDir: 'DJI Device/OsmoPocket4P-5747'
-}
+// 不内置任何真实环境信息：首次启动由「连接 NAS」引导填写，
+// 保存到 userData/settings.json；密码只进 Windows 凭据管理器。
+const DEFAULTS: NasSettings = { host: '', share: '', username: '', rootDir: '' }
 
 function settingsFile(): string {
   return join(app.getPath('userData'), 'settings.json')

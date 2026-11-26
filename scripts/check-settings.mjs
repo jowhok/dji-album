@@ -1,6 +1,12 @@
 // 设置页回归：真实点击进入 / 表单回填 / 测试连接 / 主题同步 / 缓存清理与重建
 const TILES = Number(process.env.DJI_TILES || 369)
 const FAV = Number(process.env.DJI_FAV || 2)
+// 可选：本机回归想精确比对 NAS 配置时注入，仓库内不内置任何真实环境信息
+const NAS_HOST = process.env.DJI_NAS_HOST || ''
+const NAS_SHARE = process.env.DJI_NAS_SHARE || ''
+const NAS_USER = process.env.DJI_NAS_USER || ''
+const NAS_ROOT = process.env.DJI_NAS_ROOT || ''
+const isUnc = (s) => { const v = String(s || ""), bs = String.fromCharCode(92); return v.startsWith(bs + bs) && v.slice(2).includes(bs) }
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 
 let page = null
@@ -98,16 +104,16 @@ check('进入设置页后瀑布流已卸载', (await evalJs(`document.querySelec
 const i0 = await info()
 check('统计：TILES 媒体 / 100 视频 / 218 照片', !!i0 && i0.files === TILES && i0.videos + i0.photos === i0.files, i0 && `${i0.files}/${i0.videos}/${i0.photos}`)
 check('统计：收藏 0 / 回收站 0 / 待生成 0', !!i0 && i0.favorites === FAV && i0.trash === 0 && i0.thumbMissing === 0, i0 && `${i0.favorites}/${i0.trash}/${i0.thumbMissing}`)
-check('统计：缓存 TILES 个文件 / 端口有效 / root 正确', !!i0 && i0.cacheFiles === TILES && i0.cacheBytes > 0 && i0.mediaPort > 0 && i0.root.includes('DJI-47388491'), i0 && `${i0.cacheFiles} / ${i0.mediaPort} / ${i0.root}`)
+check('统计：缓存 TILES 个文件 / 端口有效 / root 为有效 UNC', !!i0 && i0.cacheFiles === TILES && i0.cacheBytes > 0 && i0.mediaPort > 0 && (NAS_SHARE ? i0.root.includes(NAS_SHARE) : isUnc(i0.root)), i0 && `${i0.cacheFiles} / ${i0.mediaPort} / ${i0.root}`)
 check('统计：版本与运行时信息齐全', !!i0 && !!i0.version && !!i0.electron && !!i0.node && !!i0.userData && !!i0.dbPath && !!i0.thumbsDir, i0 && `${i0.version} e=${i0.electron} n=${i0.node}`)
 const domStats = await evalJs(`JSON.stringify([...document.querySelectorAll('.settings-stat')].map(s => s.querySelector('strong')?.textContent.trim() ?? ''))`)
 check('DOM 统计卡片显示 TILES / 缓存 TILES 个', domStats && JSON.parse(domStats).includes(String(TILES)) && JSON.parse(domStats).includes(TILES + " 个"), domStats)
 
 // ---------- 3. NAS 表单回填与测试连接 ----------
 const form = JSON.parse(await evalJs(`JSON.stringify([...document.querySelectorAll('.settings-form input')].map(i => i.value))`))
-check('NAS 表单正确回填 4 项', form.length === 5 && form[0] === '192.168.5.32' && form[1] === 'DJI-47388491' && form[2] === 'DJI' && form[3].includes('OsmoPocket4P'), JSON.stringify(form))
+check('NAS 表单正确回填 4 项', form.length === 5 && form.slice(0, 4).every((v) => String(v).trim() !== '') && (!NAS_HOST || form[0] === NAS_HOST) && (!NAS_SHARE || form[1] === NAS_SHARE) && (!NAS_USER || form[2] === NAS_USER) && (!NAS_ROOT || form[3].includes(NAS_ROOT)), JSON.stringify(form))
 const rootText = await evalJs(`document.querySelector('.settings-root code')?.textContent.trim() ?? ''`)
-check('显示当前 UNC 根目录', rootText.includes('DJI-47388491') && rootText.includes('OsmoPocket4P'), rootText)
+check('显示当前 UNC 根目录', isUnc(rootText) && (!NAS_SHARE || rootText.includes(NAS_SHARE)) && (!NAS_ROOT || rootText.includes(NAS_ROOT)), rootText)
 check('真实点击「测试连接」', await clickSetting('测试连接'))
 await waitFor(`!!document.querySelector('.settings-test') ? 'done' : null`, 20000)
 const testUi = await evalJs(`document.querySelector('.settings-test')?.textContent.trim() ?? ''`)

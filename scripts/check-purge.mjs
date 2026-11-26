@@ -84,7 +84,7 @@ const list = JSON.parse(await evalJs(`JSON.stringify({
 })`))
 check(list.items === 1, '清单列出 1 个媒体', JSON.stringify(list))
 check(list.files >= 1 && list.files <= 2, '清单列出实际待删文件（视频 2 / 照片 1）', String(list.files))
-check(list.paths.every((p) => p.includes('192.168.5.32')), '清单含 NAS 完整 UNC 路径', list.paths.join(' | '))
+check(list.paths.every((p) => /^\\\\[^\\]+\\[^\\]+/.test(p)), '清单含 NAS 完整 UNC 路径', list.paths.join(' | '))
 check(
   list.paths.every((p) => /\.(mp4|lrf|jpe?g)$/i.test(p)),
   '清单只含白名单扩展名', list.paths.join(' | ')

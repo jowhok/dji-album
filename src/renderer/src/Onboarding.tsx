@@ -3,12 +3,7 @@ import type { NasSettings, ScanProgress } from '../../shared/types'
 import Icon from './Icon'
 
 export default function Onboarding({ onDone }: { onDone: (root: string) => void }) {
-  const [form, setForm] = useState({
-    host: '192.168.5.32',
-    share: 'DJI-47388491',
-    username: 'DJI',
-    rootDir: 'DJI Device/OsmoPocket4P-5747'
-  })
+  const [form, setForm] = useState({ host: '', share: '', username: '', rootDir: '' })
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -51,19 +46,19 @@ export default function Onboarding({ onDone }: { onDone: (root: string) => void 
         </div>
         <label>
           主机地址
-          <input value={form.host} onChange={set('host')} placeholder="192.168.5.32" />
+          <input value={form.host} onChange={set('host')} placeholder="例如 192.168.1.10 或 NAS 主机名" />
         </label>
         <label>
           共享名称
-          <input value={form.share} onChange={set('share')} placeholder="DJI-47388491" />
+          <input value={form.share} onChange={set('share')} placeholder="例如 Photos" />
         </label>
         <label>
           照片根目录（相对共享）
-          <input value={form.rootDir} onChange={set('rootDir')} />
+          <input value={form.rootDir} onChange={set('rootDir')} placeholder="例如 DCIM/100MEDIA（留空为共享根目录）" />
         </label>
         <label>
           用户名
-          <input value={form.username} onChange={set('username')} />
+          <input value={form.username} onChange={set('username')} placeholder="SMB 用户名" />
         </label>
         <label>
           密码
