@@ -1,0 +1,83 @@
+{
+  "name": "dji-album",
+  "version": "0.1.3",
+  "description": "DJI Pocket media album over NAS (SMB)",
+  "main": "out/main/index.js",
+  "author": "wei",
+  "private": true,
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "rebuild": "electron-rebuild -f -w better-sqlite3",
+    "icons": "node scripts/build-icon.mjs",
+    "dist": "npm run build && electron-builder --win --x64",
+    "dist:clean": "node scripts/dist-clean.mjs",
+    "check:all": "node scripts/check-all.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.5.0",
+    "ffmpeg-static": "^5.2.0",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.0",
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "electron": "^33.2.0",
+    "electron-builder": "^26.18.0",
+    "electron-vite": "^2.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  },
+  "build": {
+    "appId": "com.wei.dji-album",
+    "productName": "DJI 相册",
+    "copyright": "Copyright © 2026 wei. Personal non-commercial use. DJI is a trademark of SZ DJI Technology Co., Ltd.",
+    "directories": {
+      "output": "release/v0.1.3",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**/*",
+      "package.json",
+      "!**/*.tsbuildinfo",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      { "from": "build/icon.ico", "to": "icon.ico" }
+    ],
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**/*",
+      "node_modules/sharp/**/*",
+      "node_modules/@img/**/*",
+      "node_modules/ffmpeg-static/**/*"
+    ],
+    "npmRebuild": false,
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "legalTrademarks": "DJI is a trademark of SZ DJI Technology Co., Ltd. Personal non-commercial use."
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DJI 相册",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    }
+  }
+}
